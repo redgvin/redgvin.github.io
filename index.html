@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+</head>
+
+<body style="overflow: hidden;">
+
+<script type="text/javascript" src="pixi.min.js"></script>
+<script type="text/javascript" src="pixi-spine.js"></script>
+<script src="pixi-filters.js"></script>
+<script type="text/javascript">
+	var app = new PIXI.Application({
+		autoDensity: true,
+		sharedTicker: true,
+		antialias: true,
+		transparent: true,
+		resolution: devicePixelRatio,
+		width: innerWidth,
+		height: innerHeight
+	});
+
+	document.body.appendChild(app.view);
+            let semicircle = new PIXI.Graphics();
+    // for (let i = 0; i < 18; i++) {
+    //     let pi9 = Math.PI / 9;
+    //     let color = i % 2 === 0 ? 0xff0000 : 0x0000ff
+
+    //     semicircle.beginFill(color);
+    //     semicircle.lineStyle(2, 0xffffff);
+    //     semicircle.arc(0, 0, Math.random() * 100, i * pi9, (i+1) * pi9); // cx, cy, radius, startAngle, endAngle
+    //     semicircle.lineTo(0,0)
+    //     semicircle.position = {x: app.screen.width / 2, y: app.screen.height / 2};
+    //     app.stage.addChild(semicircle);
+    // }
+
+
+	app.loader
+    .add('character', 'character.json')
+    // .add('grid_shine', 'grid_shine.json')
+ //    .add('background', 'background.json')
+ //    .add('background1', 'background1.png')
+ //    .add('btn_parts', 'btn_parts.json')
+ //    .add('select_field', 'select_field.json')
+ //    .add('win_summary_bgCircle', 'win_summary_bgCircle.json')
+    .load(function (loader, resources) {
+    	const spineData = resources.character.spineData;
+		const spine = new PIXI.spine.Spine(spineData);
+		const mult = 10
+		const graphic = new PIXI.Graphics().beginFill(0xfff000).drawRect(0, 0, 100, 152)
+
+		// const skin = new PIXI.spine.core.Skin("custom");
+		// skin.addSkin(animation.spineData.findSkin(`total_multiplier/x${mult}_mask`));
+		// skin.addSkin(animation.spineData.findSkin(`total_multiplier/x${mult}`));
+
+		// animation.skeleton.setSkin(skin);
+
+		// animation.skeleton.setSkin(spineData.findSkin('idle_blocs/slash_shape_bloc'));
+        // animation.autoUpdate = false
+        // const first = 'x'
+        // const second = '4'
+        // const third = '6'
+        // const firstIndex = spine.skeleton.findSlotIndex('slice');
+        // const secondIndex = spine.skeleton.findSlotIndex(second);
+        // const thirdIndex = spine.skeleton.findSlotIndex(third);
+        // const firstIndexS = spine.skeleton.findSlotIndex(`blue-${first}-shine`);
+        // const secondIndexS = spine.skeleton.findSlotIndex(`blue-${second}-shine`);
+        // const thirdIndexS = spine.skeleton.findSlotIndex(`blue-${third}-shine`);
+        const playSpine = (i) => {
+        	// spine.autoUpdate = false
+	        app.stage.addChild(spine);
+	        spine.position.x = app.renderer.width / 2
+	        spine.position.y = app.renderer.height / 2
+		    spine.visible = true
+			spine.scale.set(0.5)
+		    spine.state.clearListeners()
+			spine.skeleton.setToSetupPose()
+			// app.stage.addChild(graphic);
+			
+			spine.state.addListener({
+				// start: (entry) => {
+	   //            console.log(entry)
+	   //          },
+	   //          complete: (entry) => {
+	   //            console.log(entry)
+	   //          },
+	   //          end: (entry) => {
+	   //            console.log(entry)
+	   //          },
+	            event: (entry, event) => {
+	       		  console.log(event.data.name)
+	            }
+	          })
+			// spine.state.setAnimation(0, 'orang_slice_in' , false)
+			spine.state.setAnimation(0, 'idle_down_left' , true)
+			spine.state.timeScale = 1
+			// spine.state.setAnimation(0, `win_${first}_gold` , false)
+			// spine.state.addAnimation(0, `win_${second}_gold` , false, 0)
+			// spine.state.addAnimation(0, `win_${third}_gold` , false, 0)
+			// spine.state.setAnimation(3, 'win' , true)
+			// spine.state.setAnimation(0, 'win' , true)
+			// spine.state.addAnimation(3, 'win_panel' , true, 0)
+
+
+		}
+		let once = true;
+		
+		// const update = () => {
+		// 	let timeDelta = PIXI.Ticker.shared.elapsedMS * 0.001;
+		// 	//this is so you can't get huge timeDeltas when the tab is inactive then resumed
+		// 	if (timeDelta > this.maxStep) {
+		// 		timeDelta = this.revertStep;
+		// 	}
+
+		// 	if (spine.state.tracks.length > 0) {
+		// 		spine.update(timeDelta);
+		// 		spine.slotContainers[firstIndex].skew.x = 0
+		// 		if (once) {
+		// 			once = false
+		// 			spine.slotContainers[firstIndex].addChild(graphic)
+		// 		}
+
+
+		// 		// graphic.position.y = app.renderer.height / 2 + spine.slotContainers[firstIndex].y
+		// 		// graphic.position.y = app.renderer.height / 2 + spine.skeleton.findBone('text_bone').worldY
+		// 		// console.log(spine.skeleton.findBone('text_bone').worldY)
+		// 		// spine.slotContainers[secondIndex].x += spine.slotContainers[secondIndex].width
+		// 		// spine.slotContainers[thirdIndex].x += spine.slotContainers[secondIndex].width + spine.slotContainers[thirdIndex].width
+		// 		// spine.slotContainers[secondIndexS].x += spine.slotContainers[secondIndex].width
+		// 		// spine.slotContainers[thirdIndexS].x += spine.slotContainers[secondIndex].width + spine.slotContainers[thirdIndex].width
+		// 	}
+		// }
+
+		playSpine(1)
+
+		// PIXI.Ticker.shared.add(update);
+
+
+        
+        app.start();
+    });
+</script>
+</body>
+</html>
