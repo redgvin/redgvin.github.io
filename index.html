@@ -11,6 +11,7 @@
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pixi-spine@2.1.9/bin/pixi-spine.min.js"></script>
 <script src="pixi-filters.js"></script>
 <input type="file" multiple="" autocomplete="off" onchange="handleFiles(this)">
+<div id="options" style="position: absolute; top: 0; left: 20px"></div>
 
 <script type="text/javascript">
 
@@ -84,7 +85,11 @@
 					  })
 
 					let pos = 30;
-
+					const div = document.getElementById('options')
+					while (div.firstChild) {
+						div.removeChild(div.firstChild);
+					}
+					let isSelected = false
 					for (const anim of spineData.animations) {
 						pos+= 20
 						const radio = document.createElement('input');
@@ -92,7 +97,11 @@
 						radio.value = anim.name
 						radio.id = anim.name
 						radio.name = 'radio'
-						document.body.appendChild(radio);
+						if (!isSelected) {
+							isSelected = true
+							radio.setAttribute('checked', 'checked')
+						}
+						div.appendChild(radio);
 
 						radio.style = `position: absolute; top: ${pos}px`
 
@@ -100,7 +109,7 @@
 						label.setAttribute('for', anim.name)
 						label.innerHTML = anim.name
 						label.style = `position: absolute; top: ${pos}px; left: 40px`
-						document.body.appendChild(label);
+						div.appendChild(label);
 						radio.onchange = (event) => {
 							spine.state.setAnimation(0, event.target.value , true)
 							console.log(event.target.value)
