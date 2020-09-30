@@ -5,7 +5,7 @@
 	<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
 </head>
 
-<body style="overflow: hidden;">
+<body style="overflow: hidden; color: white">
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.3/pixi.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/pixi-spine@2.1.9/bin/pixi-spine.min.js"></script>
@@ -14,97 +14,92 @@
 
 <script type="text/javascript">
 
-	var app = new PIXI.Application({
+	const app = new PIXI.Application({
+		resizeTo: window,
 		autoDensity: true,
 		sharedTicker: true,
 		antialias: true,
-		transparent: true,
+		// transparent: true,
+		backgroundColor: 0x6F6F6F,
+		// preserveDrawingBuffer: true
 		resolution: devicePixelRatio,
 		width: innerWidth,
 		height: innerHeight
 	});
 
 	document.body.appendChild(app.view);
-	addAndStart('character', true)
 
-	function addAndStart(name, start) {
-		app.loader
-	    .add(name, `${name}.json`)
-
-	    if (!start) return;
-
-	    app.loader
-	    .load(function (loader, resources) {
-	    	const spineData = resources[name].spineData;
-			const spine = new PIXI.spine.Spine(spineData);
-
-
-	    });
-
-	}
-
-	var rawSkeletonData;
-	var rawAtlasData;
-
+	let rawSkeletonData;
+	let rawAtlasData;
 
 	function handleFiles(input) {
-	  for (const file of input.files) {
-	  	const reader = new FileReader();
-	    reader.onload = (function() {
-		  	if (file.name.endsWith('.json')) {
-		  		rawSkeletonData = JSON.parse(reader.result)
-		  	}
-		  	if (file.name.endsWith('.atlas')) {
-		  		rawAtlasData = reader.result
-		  	}
-		  	if (file.name.endsWith('.png')) {
+		let images = []
+		let i = 0
+		app.stage.removeChildren()
 
-		  		setTimeout(() => {
-					var spineAtlas = new PIXI.spine.core.TextureAtlas(rawAtlasData, function(line, callback) {
-					    // pass the image here.
-					    callback(PIXI.BaseTexture.fromImage(reader.result));
-					}); // specify path, image.png will be added automatically
+		for (const file of input.files) {
+			const reader = new FileReader();
+			reader.onload = (function() {
+				i++;
 
-					var spineAtlasLoader = new PIXI.spine.core.AtlasAttachmentLoader(spineAtlas)
-					var spineJsonParser = new PIXI.spine.core.SkeletonJson(spineAtlasLoader);
+				if (file.name.endsWith('.json')) {
+					rawSkeletonData = JSON.parse(reader.result)
+				} else if (file.name.endsWith('.atlas')) {
+					rawAtlasData = reader.result
+				} else {
+
+					images.push(reader.result)
+
+					if (i !== input.files.length) return
+
+					let textureIndex = -1;
+					const spineAtlas = new PIXI.spine.core.TextureAtlas(rawAtlasData, function(line, callback) {
+						// pass the image here.
+						textureIndex++
+						callback(PIXI.BaseTexture.from(images[textureIndex]));
+					});
+
+					const spineAtlasLoader = new PIXI.spine.core.AtlasAttachmentLoader(spineAtlas)
+					const spineJsonParser = new PIXI.spine.core.SkeletonJson(spineAtlasLoader);
 
 					// in case if you want everything scaled up two times
-					spineJsonParser.scale = 2.0; 
+					spineJsonParser.scale = 1;
 
-					var spineData = spineJsonParser.readSkeletonData(rawSkeletonData);
+					const spineData = spineJsonParser.readSkeletonData(rawSkeletonData);
 
 					// now we can create spine instance
-					var spine = new PIXI.spine.Spine(spineData);
+					const spine = new PIXI.spine.Spine(spineData);
 					app.stage.addChild(spine);
-			        spine.position.x = app.renderer.width / 2
-			        spine.position.y = app.renderer.height / 2
+			        spine.position.x = app.renderer.width / 2 / devicePixelRatio
+			        spine.position.y = app.renderer.height / 2 / devicePixelRatio
 				    spine.visible = true
 					spine.scale.set(0.5)
-				    spine.state.clearListeners()
+					spine.state.clearListeners()
 					spine.skeleton.setToSetupPose()
-					
+
 					spine.state.addListener({
-			            event: (entry, event) => {
-			       		  console.log(event.data.name)
-			            }
-			          })
-					
-					let i = 30;
+						event: (entry, event) => {
+						  console.log(event.data.name)
+						}
+					  })
+
+					let pos = 30;
+
 					for (const anim of spineData.animations) {
-						i+= 20
-						var radio = document.createElement('input');
+						pos+= 20
+						const radio = document.createElement('input');
 						radio.type = 'radio'
 						radio.value = anim.name
 						radio.id = anim.name
 						radio.name = 'radio'
 						document.body.appendChild(radio);
 
-						radio.style = `position: absolute; top: ${i}px`
+						radio.style = `position: absolute; top: ${pos}px`
 
-						var label = document.createElement('label');
+						const label = document.createElement('label');
 						label.setAttribute('for', anim.name)
 						label.innerHTML = anim.name
-						label.style = `position: absolute; top: ${i}px; left: 40px`
+						label.style = `position: absolute; top: ${pos}px; left: 40px`
 						document.body.appendChild(label);
 						radio.onchange = (event) => {
 							spine.state.setAnimation(0, event.target.value , true)
@@ -114,21 +109,17 @@
 					}
 
 					spine.state.setAnimation(0, spineData.animations[0].name , true)
-			     
-			        app.start();
-		  		})
 
+				}
+			});
 
-		  	}
-	    });
+			if (file.name.endsWith('.json') || file.name.endsWith('.atlas')) {
+				reader.readAsText(file);
+			} else {
+				reader.readAsDataURL(file);
+			}
 
-	    if (file.name.endsWith('.png')) {
-			reader.readAsDataURL(file);
-	    } else {
-	    	reader.readAsText(file);
-	    }
-
-	  }
+		}
 
 	}
 
